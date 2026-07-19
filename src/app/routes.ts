@@ -25,7 +25,9 @@ import { ServiceDetailPage } from "./components/ServiceDetailPage";
 import { PartnersPage } from "./components/PartnersPage";
 import { PartnerApplyPage } from "./components/PartnerApplyPage";
 import { AffiliatesPage } from "./components/AffiliatesPage";
-import { AffiliateHubPage } from "./components/AffiliateHubPage";
+import { AffiliateDashboardPage } from "./components/AffiliateDashboardPage";
+import { AffiliateSignUpPage } from "./components/affiliate/AffiliateSignUpPage";
+import { AffiliateSignInPage } from "./components/affiliate/AffiliateSignInPage";
 
 export const router = createBrowserRouter([
   {
@@ -126,7 +128,19 @@ export const router = createBrowserRouter([
   },
   {
     path: "/earn",
-    Component: AffiliateHubPage,
+    Component: AffiliatesPage,
+  },
+  {
+    path: "/affiliate/signup",
+    Component: AffiliateSignUpPage,
+  },
+  {
+    path: "/affiliate/signin",
+    Component: AffiliateSignInPage,
+  },
+  {
+    path: "/affiliate/dashboard",
+    Component: AffiliateDashboardPage,
   },
   {
     path: "/insights",
