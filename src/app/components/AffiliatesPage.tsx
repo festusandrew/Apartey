@@ -2,46 +2,46 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Gift, Copy, Check, ChevronDown, Share2, CreditCard, ArrowRight, Users,
-  UserPlus, FileText, Coins, TrendingUp, LayoutDashboard
+  UserPlus, FileText, Banknote, TrendingUp, LayoutDashboard
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { AffiliateNavbar } from "./affiliate/AffiliateNavbar";
 import { Footer } from "./Footer";
 import { useAuth } from "./AuthContext";
 
-// Points awarded for each qualifying referral (friend publishes a listing or verified review)
-const POINTS_PER_REFERRAL = 100;
+// Monetary reward awarded for each qualifying referral (friend publishes a listing or verified review)
+const REWARD_PER_REFERRAL = 5000; // ₦5,000
 
 const GIFT_CARDS = [
-  { value: "₦5,000 Gift Card", cost: 500, brand: "Apartey partner brands", giftSymbol: "💳", color: "from-orange-50 to-orange-100/40", border: "border-orange-100" },
-  { value: "₦10,000 Gift Card", cost: 1000, brand: "Apartey partner brands", giftSymbol: "🎁", color: "from-emerald-50 to-emerald-100/40", border: "border-emerald-100" },
-  { value: "₦25,000 Gift Card", cost: 2500, brand: "Premium retail partners", giftSymbol: "🏆", color: "from-purple-50 to-purple-100/40", border: "border-purple-100" },
-  { value: "₦50,000 Gift Card", cost: 5000, brand: "Premium retail partners", giftSymbol: "💎", color: "from-blue-50 to-blue-100/40", border: "border-blue-100" },
+  { value: "₦5,000 Gift Card", cost: 5000, brand: "Apartey partner brands", giftSymbol: "💳", color: "from-orange-50 to-orange-100/40", border: "border-orange-100" },
+  { value: "₦10,000 Gift Card", cost: 10000, brand: "Apartey partner brands", giftSymbol: "🎁", color: "from-emerald-50 to-emerald-100/40", border: "border-emerald-100" },
+  { value: "₦25,000 Gift Card", cost: 25000, brand: "Premium retail partners", giftSymbol: "🏆", color: "from-purple-50 to-purple-100/40", border: "border-purple-100" },
+  { value: "₦50,000 Gift Card", cost: 50000, brand: "Premium retail partners", giftSymbol: "💎", color: "from-blue-50 to-blue-100/40", border: "border-blue-100" },
 ];
 
 const STEPS = [
-  { icon: <UserPlus size={20} />, label: "Get Your Link", sub: "Sign up to claim your unique affiliate link from the dashboard." },
-  { icon: <Share2 size={20} />, label: "Share the Link", sub: "Distribute it on social media, WhatsApp groups, or direct messages." },
-  { icon: <Users size={20} />, label: "Friends Contribute", sub: "Invited friends must write a verified renter review or post a house listing." },
-  { icon: <Coins size={20} />, label: "Earn & Redeem", sub: "Collect points automatically and redeem them for gift cards anytime." },
+  { icon: <UserPlus size={20} />, label: "Get Your Link", sub: "Register your business to claim your unique affiliate link from the dashboard." },
+  { icon: <Share2 size={20} />, label: "Share the Link", sub: "Distribute it via social media, WhatsApp groups, or direct client outreach." },
+  { icon: <Users size={20} />, label: "Friends Contribute", sub: "Invited contacts must post a house listing or publish a verified renter review." },
+  { icon: <Banknote size={20} />, label: "Earn ₦5,000 & Redeem", sub: "Earn ₦5,000 for each qualified referral and redeem for gift cards anytime." },
 ];
 
 const FAQS = [
   {
-    q: "How do I earn points?",
-    a: `You earn ${POINTS_PER_REFERRAL} points every time a friend signs up with your link and publishes a property listing or submits a verified review. Points stack up in your dashboard balance automatically.`
+    q: "How much do I earn per referral?",
+    a: `You earn ₦${REWARD_PER_REFERRAL.toLocaleString()} in gift card value every time a referred friend or client signs up with your link and publishes a property listing or submits a verified review. Your accumulated earnings update automatically in your dashboard.`
   },
   {
     q: "What counts as a qualifying referral?",
-    a: "A referral is recorded when your friend signs up using your link and publishes a property listing or submits a verified review. Simple visits or signups alone do not qualify, as we reward helpful database contributors."
+    a: "A referral is recorded when your invited friend signs up using your link and publishes a property listing or submits a verified review. Simple visits or signups alone do not qualify, as we reward helpful database contributors."
   },
   {
-    q: "How do I redeem my points for a gift card?",
-    a: "Head to your affiliate dashboard, pick any gift card whose point cost you can afford, and hit Redeem. Your balance is deducted instantly and the digital gift card is emailed to your profile address within 24 hours."
+    q: "How do I redeem my earnings for gift cards?",
+    a: "Head to your affiliate dashboard, select any gift card corresponding to your accumulated earnings, and click Redeem. The digital gift card code is sent directly to your registered business email."
   },
   {
-    q: "Is there an upper limit on how many friends I can refer?",
-    a: "There are no limits. You keep accumulating points for as long as your link continues to invite active contributors, and you can redeem as many gift cards as your balance allows."
+    q: "Is there a limit to how many referrals I can make?",
+    a: "There are no limits. As an individual business partner, you continue to earn ₦5,000 for every qualified contributor you refer."
   }
 ];
 
@@ -52,15 +52,13 @@ export function AffiliatesPage() {
   const [simulatedReferrals, setSimulatedReferrals] = useState(10);
 
   const goToDashboard = () => {
-    // Affiliate accounts are separate — signed-in affiliates go to the dashboard,
-    // everyone else is sent to the affiliate signup.
     navigate(isAffiliateSignedIn ? "/affiliate/dashboard" : "/affiliate/signup");
   };
 
-  const simulatedPoints = simulatedReferrals * POINTS_PER_REFERRAL;
-  const affordableCards = GIFT_CARDS.filter(c => simulatedPoints >= c.cost);
+  const simulatedEarnings = simulatedReferrals * REWARD_PER_REFERRAL;
+  const affordableCards = GIFT_CARDS.filter(c => simulatedEarnings >= c.cost);
   const topAffordable = affordableCards[affordableCards.length - 1] || null;
-  const nextCard = GIFT_CARDS.find(c => simulatedPoints < c.cost) || null;
+  const nextCard = GIFT_CARDS.find(c => simulatedEarnings < c.cost) || null;
 
   return (
     <div className="min-h-screen bg-[#f5f6f8] text-[#10182c] font-['Mulish',sans-serif] overflow-x-hidden">
@@ -76,14 +74,14 @@ export function AffiliatesPage() {
         <div className="relative max-w-[1100px] mx-auto px-6 text-center z-10">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <span className="inline-flex items-center gap-2 bg-[#c85212]/20 border border-[#c85212]/30 text-[#fbff79] text-[11px] font-black uppercase tracking-[3px] px-5 py-2 rounded-full mb-8">
-              🎁 REFER &amp; EARN
+              🎁 REFER &amp; EARN ₦5,000 PER REFERRAL
             </span>
             <h1 className="font-['Montserrat',sans-serif] font-black text-white text-[38px] md:text-[58px] leading-[1.08] tracking-[-2px] mb-6">
-              Refer friends. Earn points.<br />
-              <span className="text-[#c85212]">Redeem for gift cards.</span>
+              Refer 1 person.<br />
+              <span className="text-[#c85212]">Get ₦5,000 in Gift Cards.</span>
             </h1>
             <p className="text-white/60 text-[18px] md:text-[21px] max-w-[640px] mx-auto mb-10 leading-relaxed font-medium">
-              Invite friends to contribute verified housing reviews or list properties. Earn {POINTS_PER_REFERRAL} points for every qualified referral and turn your balance into gift cards.
+              Invite clients &amp; contacts to publish verified housing reviews or list properties. Earn ₦5,000 in gift card value for every qualified referral.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -91,13 +89,13 @@ export function AffiliatesPage() {
                 onClick={goToDashboard}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#c85212] hover:bg-[#b0460d] text-white font-extrabold text-[15px] px-8 py-4.5 rounded-[14px] transition-all hover:scale-[1.02]"
               >
-                {isAffiliateSignedIn ? <>Go to Dashboard <LayoutDashboard size={16} /></> : <>Join &amp; Get Your Link <ArrowRight size={16} /></>}
+                {isAffiliateSignedIn ? <>Go to Dashboard <LayoutDashboard size={16} /></> : <>Register Business &amp; Get Link <ArrowRight size={16} /></>}
               </button>
               <a
                 href="#rewards"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white border border-white/20 font-bold text-[15px] px-8 py-4.5 rounded-[14px] transition-all"
               >
-                View Gift Cards
+                Calculate Earnings
               </a>
             </div>
 
@@ -116,23 +114,23 @@ export function AffiliatesPage() {
         </div>
       </section>
 
-      {/* ── INTERACTIVE POINTS CALCULATOR ── */}
+      {/* ── INTERACTIVE EARNINGS CALCULATOR ── */}
       <section id="rewards" className="py-20 md:py-24 max-w-[1100px] mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
-          <span className="text-[#c85212] font-black text-[12px] uppercase tracking-[3px] block mb-3">🔥 POINTS CALCULATOR</span>
-          <h2 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[32px] md:text-[42px] mb-4">See what your points unlock</h2>
-          <p className="text-gray-500 text-[16px] max-w-[520px] mx-auto">Drag the slider to simulate qualified referrals and watch your points balance grow into gift cards.</p>
+          <span className="text-[#c85212] font-black text-[12px] uppercase tracking-[3px] block mb-3">🔥 EARNINGS CALCULATOR</span>
+          <h2 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[32px] md:text-[42px] mb-4">See your business earnings growth</h2>
+          <p className="text-gray-500 text-[16px] max-w-[520px] mx-auto">Drag the slider to simulate qualified referrals and calculate your gift card earnings.</p>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-[32px] p-6 md:p-10 shadow-sm space-y-8 relative overflow-hidden">
 
-          {/* Simulated points controller */}
+          {/* Simulated earnings controller */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50 p-5 rounded-[20px] border border-gray-250">
             <div>
               <div className="text-gray-400 text-[11px] font-black uppercase tracking-wider">Qualified Referrals</div>
-              <div className="text-[28px] font-black text-[#c85212] mt-0.5">{simulatedReferrals} Friends</div>
-              <div className="text-[13px] font-bold text-[#10182c] mt-1 flex items-center gap-1.5">
-                <Coins size={14} className="text-[#c85212]" /> {simulatedPoints.toLocaleString()} points earned
+              <div className="text-[28px] font-black text-[#c85212] mt-0.5">{simulatedReferrals} Referrals</div>
+              <div className="text-[14px] font-bold text-[#10182c] mt-1 flex items-center gap-1.5">
+                <Banknote size={16} className="text-emerald-600" /> ₦{simulatedEarnings.toLocaleString()} Gift Card Value Earned
               </div>
             </div>
 
@@ -162,14 +160,14 @@ export function AffiliatesPage() {
                 <>
                   <div className="text-[20px] font-black text-[#10182c]">{topAffordable.value}</div>
                   <p className="text-gray-500 text-[13px] leading-relaxed">
-                    With {simulatedPoints.toLocaleString()} points you can claim up to a {topAffordable.value.toLowerCase()} redeemable at {topAffordable.brand}.
+                    With ₦{simulatedEarnings.toLocaleString()} accumulated earnings you can claim a {topAffordable.value.toLowerCase()} redeemable at {topAffordable.brand}.
                   </p>
                 </>
               ) : (
                 <>
                   <div className="text-[20px] font-black text-[#10182c]">Keep going!</div>
                   <p className="text-gray-500 text-[13px] leading-relaxed">
-                    Refer a few more friends to reach your first gift card at {GIFT_CARDS[0].cost} points.
+                    Refer a few more clients to reach your first ₦{GIFT_CARDS[0].cost.toLocaleString()} gift card.
                   </p>
                 </>
               )}
@@ -179,11 +177,11 @@ export function AffiliatesPage() {
               {nextCard ? (
                 <>
                   <div className="text-[11px] text-[#c85212] font-black uppercase tracking-wider">
-                    ⚡ Next Gift Card ({nextCard.cost.toLocaleString()} pts)
+                    ⚡ Next Gift Card (₦{nextCard.cost.toLocaleString()})
                   </div>
                   <div className="text-[20px] font-black text-[#10182c]">{nextCard.value}</div>
                   <p className="text-gray-500 text-[13px] leading-relaxed">
-                    You only need <strong className="text-[#10182c]">{Math.ceil((nextCard.cost - simulatedPoints) / POINTS_PER_REFERRAL)}</strong> more qualified referrals to unlock this reward.
+                    You only need <strong className="text-[#10182c]">{Math.ceil((nextCard.cost - simulatedEarnings) / REWARD_PER_REFERRAL)}</strong> more qualified referrals to unlock this reward.
                   </p>
                 </>
               ) : (
@@ -203,7 +201,7 @@ export function AffiliatesPage() {
         <div className="max-w-[1100px] mx-auto px-6">
           <div className="text-center mb-16">
             <span className="text-[#c85212] font-black text-[12px] uppercase tracking-[3px] block mb-3">🎁 REWARDS CATALOGUE</span>
-            <h2 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[32px] md:text-[42px]">Redeem points for gift cards</h2>
+            <h2 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[32px] md:text-[42px]">Redeem earnings for gift cards</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -219,7 +217,7 @@ export function AffiliatesPage() {
                 <h4 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[18px] mb-1">{card.value}</h4>
                 <p className="text-gray-500 text-[12px] mb-4">{card.brand}</p>
                 <span className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-[#c85212] bg-white/70 border border-[#c85212]/20 px-3 py-1.5 rounded-full">
-                  <Coins size={13} /> {card.cost.toLocaleString()} points
+                  <Banknote size={13} /> {card.value}
                 </span>
               </motion.div>
             ))}
@@ -230,7 +228,7 @@ export function AffiliatesPage() {
               onClick={goToDashboard}
               className="inline-flex items-center gap-2 bg-[#c85212] hover:bg-[#b0460d] text-white font-extrabold text-[15px] px-8 py-4 rounded-[16px] transition-all hover:scale-[1.02]"
             >
-              <TrendingUp size={16} /> Start earning points
+              <TrendingUp size={16} /> Start earning ₦5,000 per referral
             </button>
           </div>
         </div>

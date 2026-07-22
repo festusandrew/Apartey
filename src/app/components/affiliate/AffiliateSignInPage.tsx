@@ -22,9 +22,14 @@ export function AffiliateSignInPage() {
       return;
     }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 600));
     setLoading(false);
-    affiliateSignIn();
+    
+    // Derive business display name from email (e.g. contact@apexrealty.com -> Apexrealty)
+    const derivedName = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, " ");
+    const formattedName = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
+    
+    affiliateSignIn(formattedName || "Affiliate Partner");
     navigate("/affiliate/dashboard");
   };
 
@@ -58,11 +63,14 @@ export function AffiliateSignInPage() {
         className="flex flex-col"
       >
         <motion.div variants={item} className="mb-7">
+          <span className="inline-block bg-[#c85212]/10 text-[#c85212] text-[11px] font-black uppercase tracking-[1.5px] px-3 py-1 rounded-full mb-3">
+            Business Sign In
+          </span>
           <h1 className="font-['Montserrat',sans-serif] font-bold text-[#10182c] text-[26px] sm:text-[30px] leading-[1.15] tracking-[-0.5px]">
             Affiliate sign in
           </h1>
-          <p className="font-['Mulish',sans-serif] text-[#7f8694] text-[14px] sm:text-[15px] mt-2.5 tracking-[0.1px] leading-[1.55]">
-            Access your points balance and rewards dashboard.
+          <p className="font-['Mulish',sans-serif] text-[#7f8694] text-[14px] sm:text-[15px] mt-2 tracking-[0.1px] leading-[1.55]">
+            Access your earnings balance and redeem ₦5,000 gift cards.
           </p>
         </motion.div>
 

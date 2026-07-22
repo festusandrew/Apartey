@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  Coins, Copy, Check, Share2, Users, Clock, CheckCircle2, Gift,
-  TrendingUp, ArrowRight, LogIn, LogOut, History, FileText,
-  ChevronLeft, ChevronRight
+  Copy, Check, Share2, Users, Clock, CheckCircle2, Gift,
+  LogIn, LogOut, FileText, ArrowRight, TrendingUp,
+  ChevronLeft, ChevronRight, Banknote, Wallet
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner@2.0.3";
@@ -11,15 +11,15 @@ import { AffiliateNavbar } from "./affiliate/AffiliateNavbar";
 import { Footer } from "./Footer";
 import { useAuth } from "./AuthContext";
 
-const POINTS_PER_REFERRAL = 100;
+const REWARD_PER_REFERRAL = 5000; // ₦5,000 reward per qualified referral
 
 const REFERRAL_LINK = "https://apartey.com/ref/yourprofile2025";
 
 const GIFT_CARDS = [
-  { id: "gc-5k", value: "₦5,000 Gift Card", cost: 500, brand: "Apartey partner brands", giftSymbol: "💳", color: "from-orange-50 to-orange-100/40", border: "border-orange-100" },
-  { id: "gc-10k", value: "₦10,000 Gift Card", cost: 1000, brand: "Apartey partner brands", giftSymbol: "🎁", color: "from-emerald-50 to-emerald-100/40", border: "border-emerald-100" },
-  { id: "gc-25k", value: "₦25,000 Gift Card", cost: 2500, brand: "Premium retail partners", giftSymbol: "🏆", color: "from-purple-50 to-purple-100/40", border: "border-purple-100" },
-  { id: "gc-50k", value: "₦50,000 Gift Card", cost: 5000, brand: "Premium retail partners", giftSymbol: "💎", color: "from-blue-50 to-blue-100/40", border: "border-blue-100" },
+  { id: "gc-5k", value: "₦5,000 Gift Card", cost: 5000, brand: "Apartey partner brands", giftSymbol: "💳", color: "from-orange-50 to-orange-100/40", border: "border-orange-100" },
+  { id: "gc-10k", value: "₦10,000 Gift Card", cost: 10000, brand: "Apartey partner brands", giftSymbol: "🎁", color: "from-emerald-50 to-emerald-100/40", border: "border-emerald-100" },
+  { id: "gc-25k", value: "₦25,000 Gift Card", cost: 25000, brand: "Premium retail partners", giftSymbol: "🏆", color: "from-purple-50 to-purple-100/40", border: "border-purple-100" },
+  { id: "gc-50k", value: "₦50,000 Gift Card", cost: 50000, brand: "Premium retail partners", giftSymbol: "💎", color: "from-blue-50 to-blue-100/40", border: "border-blue-100" },
 ];
 
 type ReferralStatus = "qualified" | "pending";
@@ -39,7 +39,7 @@ interface Redemption {
   date: string;
 }
 
-// Mock referral activity (front-end only — resets on reload, like the rest of this prototype)
+// Mock referral activity
 const INITIAL_REFERRALS: Referral[] = [
   { id: 1, name: "Ada O.", action: "Published a listing", date: "Jul 14, 2026", status: "qualified" },
   { id: 2, name: "Chidi N.", action: "Submitted a verified review", date: "Jul 12, 2026", status: "qualified" },
@@ -97,7 +97,7 @@ export function AffiliateDashboardPage() {
 
   const [referrals] = useState<Referral[]>(INITIAL_REFERRALS);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
-  const [redeemedPoints, setRedeemedPoints] = useState(0);
+  const [redeemedValue, setRedeemedValue] = useState(0);
   const [copied, setCopied] = useState(false);
 
   // Current page per paginated section (1-based)
@@ -111,8 +111,8 @@ export function AffiliateDashboardPage() {
   );
   const pendingCount = referrals.length - qualifiedCount;
 
-  const lifetimePoints = qualifiedCount * POINTS_PER_REFERRAL;
-  const balance = lifetimePoints - redeemedPoints;
+  const lifetimeEarnings = qualifiedCount * REWARD_PER_REFERRAL;
+  const balance = lifetimeEarnings - redeemedValue;
 
   // ── Pagination slices ──
   const referralPages = Math.max(1, Math.ceil(referrals.length / REFERRALS_PER_PAGE));
@@ -128,7 +128,6 @@ export function AffiliateDashboardPage() {
   );
 
   const redemptionPages = Math.max(1, Math.ceil(redemptions.length / REDEMPTIONS_PER_PAGE));
-  // Clamp in case a page no longer exists after the list changes
   const safeRedemptionPage = Math.min(redemptionPage, redemptionPages);
   const pagedRedemptions = redemptions.slice(
     (safeRedemptionPage - 1) * REDEMPTIONS_PER_PAGE,
@@ -155,17 +154,22 @@ export function AffiliateDashboardPage() {
     }
   };
 
-  const handleRedeem = (card: typeof GIFT_CARDS[number]) => {
-    if (balance < card.cost) return;
-    setRedeemedPoints(prev => prev + card.cost);
+  const handleRedeem = (card: typeof GIFT_CARDS[0]) => {
+    if (balance < card.cost) {
+      toast.error("Insufficient balance to redeem this gift card");
+      return;
+    }
+    setRedeemedValue(prev => prev + card.cost);
     setRedemptions(prev => [
-      { id: Date.now(), card: card.value, cost: card.cost, date: "Jul 19, 2026" },
+      {
+        id: Date.now(),
+        card: card.value,
+        cost: card.cost,
+        date: "Just now",
+      },
       ...prev,
     ]);
-    setRedemptionPage(1); // newest lands on the first page
-    toast.success(`${card.value} redeemed!`, {
-      description: "Your digital gift card will be emailed within 24 hours.",
-    });
+    toast.success(`Redeemed ${card.value}! Gift card code sent to your business email.`);
   };
 
   // ── AFFILIATE AUTH GATE (independent from the main platform login) ──
@@ -181,13 +185,13 @@ export function AffiliateDashboardPage() {
             className="bg-white border border-gray-200 rounded-[28px] shadow-sm max-w-[440px] w-full p-9 text-center"
           >
             <div className="w-16 h-16 rounded-[20px] bg-[#c85212]/10 border border-[#c85212]/20 flex items-center justify-center mx-auto mb-6">
-              <Coins size={28} className="text-[#c85212]" />
+              <Banknote size={28} className="text-[#c85212]" />
             </div>
             <h1 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[26px] mb-3">
               Sign in to your affiliate account
             </h1>
             <p className="text-gray-500 text-[15px] leading-relaxed mb-8">
-              Your affiliate account is separate from any renter or homeowner profile. Sign in or create one to track referrals and redeem gift cards.
+              Your affiliate account is separate from any renter or homeowner profile. Sign in or register your business to track referrals and claim ₦5,000 gift cards.
             </p>
             <button
               onClick={() => navigate("/affiliate/signin")}
@@ -199,7 +203,7 @@ export function AffiliateDashboardPage() {
               onClick={() => navigate("/affiliate/signup")}
               className="w-full mt-3 inline-flex items-center justify-center gap-2 bg-[#10182c] hover:bg-[#1a2642] text-white font-bold text-[14px] py-3.5 rounded-[14px] transition-all"
             >
-              Create affiliate account
+              Register Affiliate Business
             </button>
             <button
               onClick={() => navigate("/earn")}
@@ -229,13 +233,13 @@ export function AffiliateDashboardPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <span className="inline-flex items-center gap-2 bg-[#c85212]/20 border border-[#c85212]/30 text-[#fbff79] text-[11px] font-black uppercase tracking-[3px] px-4 py-2 rounded-full mb-5">
-                <Coins size={13} className="text-[#fbff79]" /> Affiliate Dashboard
+                <Banknote size={13} className="text-[#fbff79]" /> Affiliate Business Dashboard
               </span>
               <h1 className="font-['Montserrat',sans-serif] font-black text-white text-[32px] md:text-[42px] leading-tight">
                 Welcome back{affiliateName ? `, ${affiliateName.split(" ")[0]}` : ""} 👋
               </h1>
               <p className="text-white/60 text-[16px] md:text-[18px] mt-2 max-w-[560px]">
-                Here is how your referrals are performing and what you can redeem right now.
+                Track your client referrals and redeem ₦5,000 gift cards instantly.
               </p>
             </div>
             <button
@@ -259,11 +263,11 @@ export function AffiliateDashboardPage() {
             className="bg-white border border-gray-200 rounded-[24px] p-7 shadow-sm"
           >
             <div className="flex items-center gap-2 text-gray-400 text-[11px] font-black uppercase tracking-wider mb-3">
-              <Coins size={15} className="text-[#c85212]" /> Points Balance
+              <Wallet size={15} className="text-[#c85212]" /> Available Earnings
             </div>
-            <div className="text-[40px] font-black text-[#c85212] leading-none">{balance.toLocaleString()}</div>
+            <div className="text-[36px] font-black text-[#c85212] leading-none">₦{balance.toLocaleString()}</div>
             <p className="text-gray-500 text-[13px] mt-3">
-              {lifetimePoints.toLocaleString()} earned · {redeemedPoints.toLocaleString()} redeemed
+              ₦{lifetimeEarnings.toLocaleString()} earned · ₦{redeemedValue.toLocaleString()} redeemed
             </p>
           </motion.div>
 
@@ -274,9 +278,9 @@ export function AffiliateDashboardPage() {
             <div className="flex items-center gap-2 text-gray-400 text-[11px] font-black uppercase tracking-wider mb-3">
               <CheckCircle2 size={15} className="text-emerald-600" /> Qualified Referrals
             </div>
-            <div className="text-[40px] font-black text-[#10182c] leading-none">{qualifiedCount}</div>
+            <div className="text-[36px] font-black text-[#10182c] leading-none">{qualifiedCount}</div>
             <p className="text-gray-500 text-[13px] mt-3">
-              {pendingCount} pending · {POINTS_PER_REFERRAL} pts each
+              {pendingCount} pending · ₦{REWARD_PER_REFERRAL.toLocaleString()} each
             </p>
           </motion.div>
 
@@ -287,9 +291,9 @@ export function AffiliateDashboardPage() {
             <div className="flex items-center gap-2 text-gray-400 text-[11px] font-black uppercase tracking-wider mb-3">
               <Gift size={15} className="text-purple-600" /> Gift Cards Redeemed
             </div>
-            <div className="text-[40px] font-black text-[#10182c] leading-none">{redemptions.length}</div>
+            <div className="text-[36px] font-black text-[#10182c] leading-none">{redemptions.length}</div>
             <p className="text-gray-500 text-[13px] mt-3">
-              {nextCard ? `${(nextCard.cost - balance).toLocaleString()} pts to ${nextCard.value}` : "Top tier unlocked"}
+              {nextCard ? `₦${(nextCard.cost - balance).toLocaleString()} to next card` : "Top tier unlocked"}
             </p>
           </motion.div>
         </div>
@@ -300,7 +304,7 @@ export function AffiliateDashboardPage() {
         <div className="bg-white border border-gray-200 rounded-[24px] p-7 shadow-sm">
           <h2 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[20px] mb-1">Your referral link</h2>
           <p className="text-gray-500 text-[14px] mb-5">
-            Share this link. You earn {POINTS_PER_REFERRAL} points when a friend signs up and publishes a listing or verified review.
+            Share this link. You earn ₦{REWARD_PER_REFERRAL.toLocaleString()} when a friend or client signs up and publishes a listing or verified review.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -348,7 +352,7 @@ export function AffiliateDashboardPage() {
                     <span className="font-bold text-[14px] text-[#10182c] truncate">{r.name}</span>
                     {r.status === "qualified" ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full shrink-0">
-                        <CheckCircle2 size={11} /> +{POINTS_PER_REFERRAL}
+                        <CheckCircle2 size={11} /> +₦{REWARD_PER_REFERRAL.toLocaleString()}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full shrink-0">
@@ -374,10 +378,10 @@ export function AffiliateDashboardPage() {
         <div className="lg:col-span-3 bg-white border border-gray-200 rounded-[24px] p-7 shadow-sm">
           <div className="flex items-center gap-2 mb-1">
             <Gift size={18} className="text-[#c85212]" />
-            <h2 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[20px]">Redeem your points</h2>
+            <h2 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[20px]">Redeem Gift Cards</h2>
           </div>
           <p className="text-gray-500 text-[14px] mb-5">
-            You have <strong className="text-[#c85212]">{balance.toLocaleString()} points</strong> available.
+            You have <strong className="text-[#c85212]">₦{balance.toLocaleString()}</strong> available balance.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -391,7 +395,7 @@ export function AffiliateDashboardPage() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="text-[32px] leading-none">{card.giftSymbol}</div>
                     <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#c85212] bg-white/70 border border-[#c85212]/20 px-2.5 py-1 rounded-full">
-                      <Coins size={12} /> {card.cost.toLocaleString()}
+                      <Banknote size={12} /> {card.value}
                     </span>
                   </div>
                   <h4 className="font-['Montserrat',sans-serif] font-black text-[#10182c] text-[16px]">{card.value}</h4>
@@ -405,7 +409,7 @@ export function AffiliateDashboardPage() {
                         : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
                     }`}
                   >
-                    {canRedeem ? <>Redeem <ArrowRight size={14} /></> : `Need ${(card.cost - balance).toLocaleString()} more`}
+                    {canRedeem ? <>Redeem <ArrowRight size={14} /></> : `Need ₦${(card.cost - balance).toLocaleString()} more`}
                   </button>
                 </div>
               );
@@ -434,7 +438,7 @@ export function AffiliateDashboardPage() {
                 <div className="w-14 h-14 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center mx-auto mb-4">
                   <Gift size={22} className="text-gray-300" />
                 </div>
-                <p className="text-gray-400 text-[14px]">No redemptions yet. Redeem a gift card above to see it here.</p>
+                <p className="text-gray-400 text-[14px]">No redemptions yet. Select a gift card above to redeem.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -455,7 +459,7 @@ export function AffiliateDashboardPage() {
                       </div>
                     </div>
                     <span className="text-[13px] font-extrabold text-[#c85212] flex items-center gap-1 shrink-0">
-                      <Coins size={13} /> -{r.cost.toLocaleString()}
+                      <Banknote size={13} /> -₦{r.cost.toLocaleString()}
                     </span>
                   </motion.div>
                 ))}
@@ -470,12 +474,13 @@ export function AffiliateDashboardPage() {
           />
         </div>
 
+
         <div className="text-center mt-10">
           <button
             onClick={() => navigate("/earn")}
             className="inline-flex items-center gap-2 text-gray-500 hover:text-[#10182c] font-bold text-[14px] transition-colors"
           >
-            <TrendingUp size={15} /> Learn more about how points work
+            <TrendingUp size={15} /> Learn more about how earnings work
           </button>
         </div>
       </section>
